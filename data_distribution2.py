@@ -39,13 +39,7 @@ for i in range(len(pathes)):
         shutil.copy(src,dst)
         index += 1
 
-# for row in all_xrays_df.itertuples():
-#     src = row[14]
-#     img_name = 'NoFinding_' + str(index) + '.png' # 
-#     dst = Nofinding_path + img_name # 
-#     shutil.copy(src,dst)
-#     index += 1
-        
+
 
 
 
