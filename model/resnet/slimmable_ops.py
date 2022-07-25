@@ -2,7 +2,7 @@ import torch.nn as nn
 # from utils.config import FLAGS
 # width_mult = FLAGS.width_mult_range[-1]
 
-def make_divisible(v, divisor=8, min_value=1): # 상수를 리턴해주는 함수
+def make_divisible(v, divisor=8, min_value=1): # return a constant number. This function rounds the channel number to the nearest value that can be divisible by the divisor.
     """
     forked from slim:
     https://github.com/tensorflow/models/blob/\
@@ -25,7 +25,7 @@ class USConv2d(nn.Conv2d):
         in_channels_max = in_channels
         out_channels_max = out_channels
         if us[0]:
-            in_channels_max = int(make_divisible(
+            in_channels_max = int(make_divisible( # as a result, make_divisible(in_channels)
                 in_channels
                 * width_max
                 / ratio[0]) * ratio[0])

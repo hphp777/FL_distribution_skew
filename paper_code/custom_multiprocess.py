@@ -14,4 +14,4 @@ class NoDaemonProcess(multiprocessing.Process):
     daemon = property(_get_daemon, _set_daemon)
 
 class MyPool(multiprocessing.pool.Pool):
-    Process = NoDaemonProcess
+    Process = NoDaemonProcess # when server exit, clients are still alive

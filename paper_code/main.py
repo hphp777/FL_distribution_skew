@@ -132,7 +132,7 @@ if __name__ == "__main__":
      set_start_method('spawn') # new process starts
     except RuntimeError:
         pass
-    set_random_seed()
+    set_random_seed() # set random seed
     # get arguments
     parser = argparse.ArgumentParser()
     args = add_args(parser)
