@@ -128,6 +128,7 @@ class ResNet(nn.Module):
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = USLinear(64 * block.expansion, num_classes, us=[True, False], width_max=self.max_width)
         self.KD = KD
+        self.softmax = torch.nn.Softmax(dim=0)
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
@@ -179,6 +180,7 @@ class ResNet(nn.Module):
         x = self.avgpool(x)  # B x 64 x 1 x 1
         x_f = x.view(x.size(0), -1)  # B x 64
         x = self.fc(x_f)  # B x num_classes
+        # x = self.softmax(x)
         if self.KD == True:
             return x_f, x
         else:
@@ -195,6 +197,7 @@ class ResNet(nn.Module):
         x = self.avgpool(x3)  # B x 64 x 1 x 1
         x_f = x.view(x.size(0), -1)  # B x 64
         x = self.fc(x_f)  # B x num_classes
+        # x = self.softmax(x)
         if self.KD == True:
             return x_f, x
         else:
@@ -225,4 +228,5 @@ def resnet56(class_num = 15, pretrained=False, path=None, **kwargs):
             new_state_dict[name] = v
 
         model.load_state_dict(new_state_dict)
+
     return model
