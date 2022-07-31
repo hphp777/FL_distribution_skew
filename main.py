@@ -35,27 +35,26 @@ for i in range(client_num):
 
 def centralized_server(pool):
 
-    training_round = 50
+    training_round = 2
     weights = [0] * 10
     procs = []
 
-    q = Queue()
+    
     
     # Initial Round
     for i in range(client_num):
+        q = Queue()
         p = Process(target = clients[i].train, args=(q, False,))
         procs.append(p)
         p.start()
-        weight[i] = q.get()
+        weights[i] = q.get()
         p.join()
-        print(weights[i])
-        
-        # weight += (len(clients[i].dataloader) / total_data_num) * weights[i] # 이게 타입이 호환이 되는지는 잘 모르겠다. 
-    
-    # for p in procs:
-    #     p.join()
 
-    weight = (len(client0.dataloader) / total_data_num) * weights[0] \
+    for i in range (client_num):
+        for key in weights[i]:
+            weight = (len(clients[i].dataloader) / total_data_num) * weights[i][key]
+
+    # weight = (len(client0.dataloader) / total_data_num) * weights[0] \
         #  + (len(client1.dataloader) / total_data_num) * weights[1] \
         #  + (len(client2.dataloader) / total_data_num) * weights[2] + (len(client3.dataloader) / total_data_num) * weights[3] \
         #  + (len(client4.dataloader) / total_data_num) * weights[4] \
@@ -64,25 +63,17 @@ def centralized_server(pool):
         #  + (len(client8.dataloader) / total_data_num) * weights[8] + (len(client9.dataloader) / total_data_num) * weights[9]
      
     for i in range(training_round):
-        print("training round : ", training_round)
+        print("training round : ", i)
         for j in range(client_num):
-            p = Process(target = clients[j].train, args=(True,weight))
-            procs.append(p)
-            weights[j] = p.start()
+            q = Queue()
+            p = Process(target = clients[j].train, args=(q, True, weight))
+            p.start()
+            weights[j] = q.get()
+            p.join()
 
-        for proc in procs:
-            proc.join()
-
-        # summing weight
-        weight = (len(client0.dataloader) / total_data_num) * weights[0] + (len(client1.dataloader) / total_data_num) * weights[1] \
-         + (len(client2.dataloader) / total_data_num) * weights[2] + (len(client3.dataloader) / total_data_num) * weights[3] \
-         + (len(client4.dataloader) / total_data_num) * weights[4] \
-         + (len(client5.dataloader) / total_data_num) * weights[5] \
-         + (len(client6.dataloader) / total_data_num) * weights[6] + (len(client7.dataloader) / total_data_num) * weights[7] \
-         + (len(client8.dataloader) / total_data_num) * weights[8] + (len(client9.dataloader) / total_data_num) * weights[9]
-
-
-
+        for j in range (client_num):
+            for key in weights[j]:
+                weight = (len(clients[j].dataloader) / total_data_num) * weights[j][key]
 
 def peer_to_peer(): # 1:1로 weight를 교환할 때 weight값에 어떤 가중치를 줘야 하는지 잘 모르겠다. 
     pass
