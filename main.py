@@ -37,31 +37,23 @@ def centralized_server(pool):
 
     training_round = 2
     weights = [0] * 10
-    procs = []
-
-    
     
     # Initial Round
     for i in range(client_num):
         q = Queue()
         p = Process(target = clients[i].train, args=(q, False,))
-        procs.append(p)
         p.start()
         weights[i] = q.get()
         p.join()
 
+    weight = {}
+
     for i in range (client_num):
         for key in weights[i]:
-            weight = (len(clients[i].dataloader) / total_data_num) * weights[i][key]
-
-    # weight = (len(client0.dataloader) / total_data_num) * weights[0] \
-        #  + (len(client1.dataloader) / total_data_num) * weights[1] \
-        #  + (len(client2.dataloader) / total_data_num) * weights[2] + (len(client3.dataloader) / total_data_num) * weights[3] \
-        #  + (len(client4.dataloader) / total_data_num) * weights[4] \
-        #  + (len(client5.dataloader) / total_data_num) * weights[5] \
-        #  + (len(client6.dataloader) / total_data_num) * weights[6] + (len(client7.dataloader) / total_data_num) * weights[7] \
-        #  + (len(client8.dataloader) / total_data_num) * weights[8] + (len(client9.dataloader) / total_data_num) * weights[9]
+            weight[key] += (len(clients[i].dataloader) / total_data_num) * weights[i][key]
      
+    print(weight)
+
     for i in range(training_round):
         print("training round : ", i)
         for j in range(client_num):
@@ -71,9 +63,11 @@ def centralized_server(pool):
             weights[j] = q.get()
             p.join()
 
+        weight = {}
+
         for j in range (client_num):
             for key in weights[j]:
-                weight = (len(clients[j].dataloader) / total_data_num) * weights[j][key]
+                weight[key] += (len(clients[j].dataloader) / total_data_num) * weights[j][key]
 
 def peer_to_peer(): # 1:1로 weight를 교환할 때 weight값에 어떤 가중치를 줘야 하는지 잘 모르겠다. 
     pass
