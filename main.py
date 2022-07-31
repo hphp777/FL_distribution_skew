@@ -2,13 +2,14 @@ import multiprocessing
 from multiprocessing import Process, Queue
 from statistics import mode
 import time
+from typing import OrderedDict
 import torch
 import numpy
 from model.resnet import ResNet50
 from model.efficientnet import EfficientNet
 from train_client import client
 
-client_num = 1
+client_num = 10
 
 # Create client
 client0 = client(0, 'resnet')
@@ -35,27 +36,34 @@ for i in range(client_num):
 
 def centralized_server(pool):
 
-    training_round = 2
+    training_round = 50
     weights = [0] * 10
+    procs = []
     
     # Initial Round
+    print("training round : ", 1)
     for i in range(client_num):
         q = Queue()
         p = Process(target = clients[i].train, args=(q, False,))
+        procs.append(p)
         p.start()
         weights[i] = q.get()
-        p.join()
 
-    weight = {}
+    for proc in procs:
+        proc.join()
+
+    weight = OrderedDict()
 
     for i in range (client_num):
-        for key in weights[i]:
-            weight[key] += (len(clients[i].dataloader) / total_data_num) * weights[i][key]
-     
-    print(weight)
+        if i == 0:
+            for key in weights[i]:
+                weight[key] = (len(clients[i].dataloader) / total_data_num) * weights[i][key]
+        else:
+            for key in weights[i]:
+                weight[key] += (len(clients[i].dataloader) / total_data_num) * weights[i][key]
 
     for i in range(training_round):
-        print("training round : ", i)
+        print("training round : ", i+2)
         for j in range(client_num):
             q = Queue()
             p = Process(target = clients[j].train, args=(q, True, weight))
@@ -63,11 +71,15 @@ def centralized_server(pool):
             weights[j] = q.get()
             p.join()
 
-        weight = {}
+        weight = OrderedDict()
 
         for j in range (client_num):
-            for key in weights[j]:
-                weight[key] += (len(clients[j].dataloader) / total_data_num) * weights[j][key]
+            if j == 0 :
+                for key in weights[j]:
+                    weight[key] = (len(clients[j].dataloader) / total_data_num) * weights[j][key]
+            else:
+                for key in weights[j]:
+                    weight[key] += (len(clients[j].dataloader) / total_data_num) * weights[j][key]
 
 def peer_to_peer(): # 1:1로 weight를 교환할 때 weight값에 어떤 가중치를 줘야 하는지 잘 모르겠다. 
     pass

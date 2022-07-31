@@ -13,7 +13,7 @@ class client():
     def __init__(self, client_number , model):
         
         # hyperparameter
-        self.epochs = 1 # epochs
+        self.epochs = 2 # local epochs
         self.learning_rate = 0.01
         self.weight_decay = 0.0001
         self.width_range = [0.25, 1.0]
@@ -49,7 +49,7 @@ class client():
         if self.updated == True:
             self.model.load_state_dict(weight)
 
-
+        print("-----client" + str(self.cnum) + "-----")
         for epoch in range(self.epochs):
             
             batch_loss = []
