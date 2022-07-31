@@ -18,11 +18,11 @@ client2 = client(2, 'resnet')
 client3 = client(3, 'resnet')
 client4 = client(4, 'resnet')
 
-client5 = client(5, 'efficientnetb0')
-client6 = client(6, 'efficientnetb0')
-client7 = client(7, 'efficientnetb0')
-client8 = client(8, 'efficientnetb0')
-client9 = client(9, 'efficientnetb0')
+client5 = client(5, 'resnet')
+client6 = client(6, 'resnet')
+client7 = client(7, 'resnet')
+client8 = client(8, 'resnet')
+client9 = client(9, 'resnet')
 
 clients = [client0, client1, client2, client3, client4, client5, client6, client7, client8, client9]
 
@@ -34,23 +34,19 @@ total_data_num = 0.0
 for i in range(client_num):
     total_data_num += len(clients[i].dataloader)
 
-def centralized_server(pool):
+def centralized_server():
 
-    training_round = 50
+    training_round = 10
     weights = [0] * 10
-    procs = []
     
     # Initial Round
     print("training round : ", 1)
     for i in range(client_num):
         q = Queue()
         p = Process(target = clients[i].train, args=(q, False,))
-        procs.append(p)
         p.start()
         weights[i] = q.get()
-
-    for proc in procs:
-        proc.join()
+        p.join()
 
     weight = OrderedDict()
 
@@ -86,9 +82,7 @@ def peer_to_peer(): # 1:1로 weight를 교환할 때 weight값에 어떤 가중�
 
 if __name__ == '__main__':
 
-    pool = multiprocessing.Pool(5)
-
-    centralized_server(pool)
+    centralized_server()
 
     # print(client7.test())
 

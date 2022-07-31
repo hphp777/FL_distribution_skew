@@ -122,6 +122,83 @@ class cifar10Loader(Dataset):
         img, label = self.cifar100(index)
         return img, label
 
+class ChestXLoaderTest(Dataset):
+    def ChestXdataloader(self, img_path):
+        
+        resize = 256
+        mean = [0.485]
+        std = [0.229] 
+
+        img = cv2.imread(img_path, IMREAD_GRAYSCALE)
+        label = self.create_label(img_path)
+
+        transform = transforms.Compose([
+        transforms.ToPILImage(),
+        transforms.Resize([resize,resize], PIL.NEAREST),
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.RandomVerticalFlip(p=0.5),
+        transforms.ToTensor(),
+        # transforms.Normalize(mean, std, inplace=False),
+        ])
+        
+        img = transform(img)
+
+        return img, label
+
+    def __init__(self):
+        self.all_image_paths = []
+        for client_index in range(10):
+            cdata = glob('C:/Users/hb/Desktop/Data/ChestX-ray14_Client_Data/C' + str(client_index) + '/*.png')
+
+            total = len(cdata)
+            self.partition = int(total * 0.8)
+
+            self.all_image_paths += cdata[self.partition:]
+
+    def __len__(self):
+        return len(self.all_image_paths)
+
+    def __getitem__(self, index): # 여기에 들어가는 index는?
+        
+        if torch.is_tensor(index):
+            index = index.tolist()
+        
+        image = self.ChestXdataloader(self.all_image_paths[index])
+
+        return image
+
+    def create_label(self, img_path):
+        if "Atelectasis" in img_path:
+            return 0
+        elif "Cardiomegaly" in img_path:
+            return 1
+        elif "Consolidation" in img_path:
+            return 2
+        elif "Edema" in img_path:
+            return 3
+        elif "Effusion" in img_path:
+            return 4
+        elif "Emphysema" in img_path:
+            return 5
+        elif "Fibrosis" in img_path:
+            return 6
+        elif "Hernia" in img_path:
+            return 7
+        elif "Infiltration" in img_path:
+            return 8
+        elif "Mass" in img_path:
+            return 9
+        elif "Nodule" in img_path:
+            return 10
+        elif "NoFinding" in img_path:
+            return 11
+        elif "Pleural_Thickening" in img_path:
+            return 12
+        elif "Pneumonia" in img_path:
+            return 13
+        elif "Pneumothorax" in img_path:
+            return 14
+
 class ChestXLoader(Dataset): # custom dataset
     def ChestXdataloader(self, img_path):
         
@@ -145,21 +222,16 @@ class ChestXLoader(Dataset): # custom dataset
 
         return img, label
 
-    def __init__(self,client_index, mode):
+    def __init__(self,client_index):
         
-        random.seed(100)
         self.all_image_paths = glob('C:/Users/hb/Desktop/Data/ChestX-ray14_Client_Data/C' + str(client_index) + '/*.png')
         # self.all_image_paths = glob('C:/Users/hb/Desktop/Data/ChestX-ray14/*/*.png')
-        random.shuffle(self.all_image_paths)
         
         total = len(self.all_image_paths)
         self.partition = int(total * 0.8)
-        self.mode = mode
 
-        if self.mode == 'train':
-            self.all_image_paths = self.all_image_paths[:self.partition]
-        elif self.mode == 'test':
-            self.all_image_paths = self.all_image_paths[self.partition:]
+        self.all_image_paths = self.all_image_paths[:self.partition]
+
         
     def __len__(self):
         return len(self.all_image_paths)

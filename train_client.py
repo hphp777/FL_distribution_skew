@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from tqdm import tqdm
 import numpy as np
 from matplotlib import pyplot as plt
-from pipelining import cifar100Loader, ChestXLoader, cifar10Loader
+from pipelining import cifar100Loader, ChestXLoader, cifar10Loader, ChestXLoaderTest
 from torch.utils.data import DataLoader
 from model.resnet import ResNet50
 from model.efficientnet import EfficientNet
@@ -20,11 +20,12 @@ class client():
         self.mu = 0.45
         self.cnum = client_number
         self.batch = 4
+        self.model_name = model
 
         # model
-        if model == 'resnet':
+        if self.model_name == 'resnet':
             self.model = ResNet50.resnet56()
-        elif model == 'efficientnetb0':
+        elif self.model_name == 'efficientnetb0':
             self.model = EfficientNet.efficientnet_b0()
 
         # train option
@@ -32,7 +33,7 @@ class client():
         self.criterion = torch.nn.CrossEntropyLoss().to(self.device)
         self.optimizer = torch.optim.SGD(self.model.parameters(), lr=self.learning_rate, momentum=0.9, weight_decay=self.weight_decay, nesterov=True)
 
-        self.dataloader = DataLoader(ChestXLoader(self.cnum, mode = 'train'), batch_size = self.batch, shuffle=True)
+        self.dataloader = DataLoader(ChestXLoader(self.cnum), batch_size = self.batch, shuffle=True)
         
     def train(self,q = None,updated = False, weight = None):
         
@@ -66,31 +67,32 @@ class client():
 
                 self.optimizer.zero_grad() # optimize the training process
                 self.model.apply(lambda m: setattr(m, 'width_mult', self.width_range[-1])) # width_range = [0.25, 1.0]
-                teacher_feats, teacher_output = self.model.extract_feature(imgs) # [B x 32 x 16 x 16, B x 64 x 8 x 8], B x num_classes
-                # teacher_output = self.model(imgs)
+
+                if self.model_name == 'resnet':
+                    teacher_feats, teacher_output = self.model.extract_feature(imgs) # [B x 32 x 16 x 16, B x 64 x 8 x 8], B x num_classes
+                elif self.model_name == 'efficientnetb0':
+                    teacher_output = self.model(imgs)
 
                 # calculate accuracy
                 teacher_output_n = np.argmax(teacher_output.cpu().detach().numpy(), axis=1)
                 correct = (teacher_output_n == labels.cpu().detach().numpy()).sum()
                 total_correct += correct
                 total_data += labels.size(0)
-
-
                 loss = self.criterion(teacher_output, labels) # how to make labels??
                 grad_scaler.scale(loss).backward()
-                loss_CE = loss.item()
-                
-                self.model.apply(lambda m: setattr(m, 'width_mult', self.width_range[0]))
 
-                s_feats = self.model.reuse_feature(teacher_feats[-2].detach())
 
-                # Lipschitz loss
-                TM_s = torch.bmm(self.transmitting_matrix(s_feats[-2], s_feats[-1]), self.transmitting_matrix(s_feats[-2], s_feats[-1]).transpose(2,1))
-                TM_t = torch.bmm(self.transmitting_matrix(teacher_feats[-2].detach(), teacher_feats[-1].detach()), self.transmitting_matrix(teacher_feats[-2].detach(), teacher_feats[-1].detach()).transpose(2,1))
-                loss = F.mse_loss(self.top_eigenvalue(K=TM_s), self.top_eigenvalue(K=TM_t))
-                loss = self.mu*(loss_CE/loss.item())*loss
-                # loss.backward()
-                grad_scaler.scale(loss).backward()
+                if self.model_name == 'resnet':
+                    loss_CE = loss.item()
+                    self.model.apply(lambda m: setattr(m, 'width_mult', self.width_range[0]))
+                    s_feats = self.model.reuse_feature(teacher_feats[-2].detach())
+                    # Lipschitz loss
+                    TM_s = torch.bmm(self.transmitting_matrix(s_feats[-2], s_feats[-1]), self.transmitting_matrix(s_feats[-2], s_feats[-1]).transpose(2,1))
+                    TM_t = torch.bmm(self.transmitting_matrix(teacher_feats[-2].detach(), teacher_feats[-1].detach()), self.transmitting_matrix(teacher_feats[-2].detach(), teacher_feats[-1].detach()).transpose(2,1))
+                    loss = F.mse_loss(self.top_eigenvalue(K=TM_s), self.top_eigenvalue(K=TM_t))
+                    loss = self.mu*(loss_CE/loss.item())*loss
+                    grad_scaler.scale(loss).backward()
+
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), 10.0)
                 grad_scaler.step(self.optimizer)
                 grad_scaler.update()
@@ -134,7 +136,7 @@ class client():
     def test(self):
 
         self.model.eval()
-        dataloader = DataLoader(ChestXLoader(self.cnum, mode = 'test'), batch_size = self.batch,shuffle=True)
+        dataloader = DataLoader(ChestXLoaderTest(), batch_size = self.batch,shuffle=True)
 
         with torch.no_grad(): # for the evaluation mode
             
