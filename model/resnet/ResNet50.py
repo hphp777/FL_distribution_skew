@@ -98,7 +98,7 @@ class Bottleneck(nn.Module):
 
 class ResNet(nn.Module):
 
-    def __init__(self, block, layers, num_classes=15, zero_init_residual=False, groups=1,
+    def __init__(self, block, layers, num_classes=10, zero_init_residual=False, groups=1,
                  width_per_group=64, replace_stride_with_dilation=None, norm_layer=None, KD=False, max_width=1.0):
         super(ResNet, self).__init__()
         if norm_layer is None:
@@ -107,6 +107,8 @@ class ResNet(nn.Module):
         self.max_width = max_width
         self.inplanes = 16
         self.dilation = 1
+        self.channels = 1
+        self.num_classes = num_classes
         if replace_stride_with_dilation is None:
             # each element in the tuple indicates if we should replace
             # the 2x2 stride with a dilated convolution instead
@@ -117,7 +119,7 @@ class ResNet(nn.Module):
 
         self.groups = groups
         self.base_width = width_per_group
-        self.conv1 = USConv2d(1, self.inplanes, kernel_size=3, stride=1, padding=1, # we don't care what the image size is / input channel is 1
+        self.conv1 = USConv2d(self.channels, self.inplanes, kernel_size=3, stride=1, padding=1, # we don't care what the image size is / input channel is 1
                                bias=False, us=[False, True], width_max=self.max_width)
         self.bn1 = USBatchNorm2d(self.inplanes, width_max=self.max_width)
         self.relu = nn.ReLU(inplace=True)
@@ -126,7 +128,7 @@ class ResNet(nn.Module):
         self.layer2 = self._make_layer(block, 32, layers[1], stride=2)
         self.layer3 = self._make_layer(block, 64, layers[2], stride=2)
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc = USLinear(64 * block.expansion, num_classes, us=[True, False], width_max=self.max_width)
+        self.fc = USLinear(64 * block.expansion, self.num_classes, us=[True, False], width_max=self.max_width)
         self.KD = KD
         self.softmax = torch.nn.Softmax(dim=0)
         for m in self.modules():

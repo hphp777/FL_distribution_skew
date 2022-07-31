@@ -7,6 +7,7 @@ import numpy as np
 from torch.utils.data import Dataset
 import PIL.Image as PIL
 import torchvision.transforms as transforms
+from matplotlib import pyplot as plt
 import os
 from glob import glob
 import random
@@ -15,17 +16,113 @@ import tensorflow as tf
 
 class cifar100Loader(Dataset):
     
+    def cifar100(self, index):
+
+        resize = 256
+        if self.mode == 'train':
+            img = self.client_train[index]
+            label = self.client_train_label[index][0]
+        elif self.mode == 'test':
+            img = self.client_test[index]
+            label = self.client_test_label[index][0]
+
+        plt.imshow(img)
+        plt.show()
+
+        transform = transforms.Compose([
+        transforms.ToPILImage(),
+        # transforms.Resize([resize,resize], PIL.NEAREST),
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.RandomVerticalFlip(p=0.5),
+        transforms.ToTensor(),
+        # transforms.Normalize(mean, std, inplace=False),
+        ])
+
+        img = transform(img)
+
+        return img, label
+
     def __init__(self,client_index, mode):
-        (x_train, y_train), (x_test, y_test) = tf.keras.datasets.cifar100.load_data()
+
+        self.mode = mode
+        (self.x_train, self.y_train), (self.x_test, self.y_test) = tf.keras.datasets.cifar100.load_data()
+
+        # print(self.x_train.shape)
+
+        # Distribute data to the clients
+        if self.mode == 'train':
+            self.client_train = self.x_train
+            self.client_train_label = self.y_train
+        elif self.mode =='test':
+            self.client_test = self.x_test[:2000]
+            self.client_test_label = self.y_test[:2000]
         
     
     def __len__(self):
-        pass
+        if self.mode == 'train':
+            return len(self.client_train)
+        elif self.mode == 'test':
+            return  len(self.client_test)
     
     def __getitem__(self, index):
-        pass
+        img, label = self.cifar100(index)
+        return img, label
 
-class Loader(Dataset): # custom dataset
+class cifar10Loader(Dataset):
+    
+    def cifar100(self, index):
+
+        resize = 256
+        if self.mode == 'train':
+            img = self.client_train[index]
+            label = self.client_train_label[index][0]
+        elif self.mode == 'test':
+            img = self.client_test[index]
+            label = self.client_test_label[index][0]
+
+        # plt.imshow(img)
+        # plt.show()
+
+        transform = transforms.Compose([
+        transforms.ToPILImage(),
+        # transforms.Resize([resize,resize], PIL.NEAREST),
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.RandomVerticalFlip(p=0.5),
+        transforms.ToTensor(),
+        # transforms.Normalize(mean, std, inplace=False),
+        ])
+
+        img = transform(img)
+
+        return img, label
+
+    def __init__(self,client_index, mode):
+
+        self.mode = mode
+        (self.x_train, self.y_train), (self.x_test, self.y_test) = tf.keras.datasets.cifar10.load_data()
+
+        # print(self.x_train.shape)
+
+        # Distribute data to the clients
+        if self.mode == 'train':
+            self.client_train = self.x_train[:10000]
+            self.client_train_label = self.y_train[:10000]
+        elif self.mode =='test':
+            self.client_test = self.x_test[:2000]
+            self.client_test_label = self.y_test[:2000]
+        
+    
+    def __len__(self):
+        if self.mode == 'train':
+            return len(self.client_train)
+        elif self.mode == 'test':
+            return  len(self.client_test)
+    
+    def __getitem__(self, index):
+        img, label = self.cifar100(index)
+        return img, label
+
+class ChestXLoader(Dataset): # custom dataset
     def ChestXdataloader(self, img_path):
         
         resize = 256

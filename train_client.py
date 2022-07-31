@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from tqdm import tqdm
 import numpy as np
 from matplotlib import pyplot as plt
-from pipelining import Loader
+from pipelining import cifar100Loader, ChestXLoader, cifar10Loader
 from torch.utils.data import DataLoader
 from model.resnet import ResNet50
 from model.efficientnet import EfficientNet
@@ -31,16 +31,23 @@ class client():
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         self.criterion = torch.nn.CrossEntropyLoss().to(self.device)
         self.optimizer = torch.optim.SGD(self.model.parameters(), lr=self.learning_rate, momentum=0.9, weight_decay=self.weight_decay, nesterov=True)
+
+        self.dataloader = DataLoader(ChestXLoader(self.cnum, mode = 'train'), batch_size = self.batch, shuffle=True)
         
-    def train(self):
+    def train(self,q = None,updated = False, weight = None):
         
+        self.updated = updated
         self.model.to(self.device) # allocate model to device
         self.model.train() # set model as train mode
         epoch_loss = []
-        dataloader = DataLoader(Loader(self.cnum, mode = 'train'), batch_size = self.batch)
+        
         PATH = "./model.pt"
         grad_scaler = torch.cuda.amp.GradScaler(enabled=False)
         # self.model.load_state_dict(torch.load(PATH))
+
+        # If I recieve the weight
+        if self.updated == True:
+            self.model.load_state_dict(weight)
 
 
         for epoch in range(self.epochs):
@@ -48,11 +55,14 @@ class client():
             batch_loss = []
             total_correct = 0.0
             total_data = 0.0
+            self.model.train()
+            # print("client " + str(self.cnum) + " training")
 
-            for batch_idx, (imgs, labels) in enumerate(tqdm(dataloader, desc="Training Epoch " + str(epoch))):
+            for batch_idx, (imgs, labels) in enumerate(tqdm(self.dataloader, desc="Training Epoch " + str(epoch+1) + "/" + str(self.epochs))):
 
                 imgs = imgs.to(self.device) # allocate data to the device
-                labels = labels.clone().detach().to(self.device)
+                labels = labels.clone().detach().type(torch.LongTensor).to(self.device)
+
 
                 self.optimizer.zero_grad() # optimize the training process
                 self.model.apply(lambda m: setattr(m, 'width_mult', self.width_range[-1])) # width_range = [0.25, 1.0]
@@ -95,7 +105,11 @@ class client():
 
             self.test()
 
-        # return weights # return weights as a result of the training
+        # plt.plot(range(self.epochs), epoch_loss)
+        # plt.show()
+        
+        weights = self.model.cpu().state_dict()
+        q.put(weights) # return weights as a result of the training
 
     def transmitting_matrix(self, fm1, fm2):
         if fm1.size(2) > fm2.size(2):
@@ -120,7 +134,7 @@ class client():
     def test(self):
 
         self.model.eval()
-        dataloader = DataLoader(Loader(self.cnum, mode = 'test'), batch_size = self.batch)
+        dataloader = DataLoader(ChestXLoader(self.cnum, mode = 'test'), batch_size = self.batch,shuffle=True)
 
         with torch.no_grad(): # for the evaluation mode
             
