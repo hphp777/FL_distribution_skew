@@ -7,9 +7,13 @@ import torch
 import numpy
 from model.resnet import ResNet50
 from model.efficientnet import EfficientNet
-from train_client import client
+from train_client import client, server
+from matplotlib import pyplot as plt
 
 client_num = 10
+
+# Create server
+central_server = server('resnet')
 
 # Create client
 client0 = client(0, 'resnet')
@@ -17,7 +21,6 @@ client1 = client(1, 'resnet')
 client2 = client(2, 'resnet')
 client3 = client(3, 'resnet')
 client4 = client(4, 'resnet')
-
 client5 = client(5, 'resnet')
 client6 = client(6, 'resnet')
 client7 = client(7, 'resnet')
@@ -25,8 +28,6 @@ client8 = client(8, 'resnet')
 client9 = client(9, 'resnet')
 
 clients = [client0, client1, client2, client3, client4, client5, client6, client7, client8, client9]
-
-
 
 # Add all data number
 total_data_num = 0.0
@@ -36,9 +37,10 @@ for i in range(client_num):
 
 def centralized_server():
 
-    training_round = 10
+    training_round = 2
     weights = [0] * 10
-    
+    server_acc = []
+
     # Initial Round
     print("training round : ", 1)
     for i in range(client_num):
@@ -48,15 +50,8 @@ def centralized_server():
         weights[i] = q.get()
         p.join()
 
-    weight = OrderedDict()
-
-    for i in range (client_num):
-        if i == 0:
-            for key in weights[i]:
-                weight[key] = (len(clients[i].dataloader) / total_data_num) * weights[i][key]
-        else:
-            for key in weights[i]:
-                weight[key] += (len(clients[i].dataloader) / total_data_num) * weights[i][key]
+    weight = central_server.merge_weight(weights, client_num, clients, total_data_num,1)
+    server_acc.append(central_server.test(weights, client_num, clients, total_data_num))
 
     for i in range(training_round):
         print("training round : ", i+2)
@@ -67,15 +62,10 @@ def centralized_server():
             weights[j] = q.get()
             p.join()
 
-        weight = OrderedDict()
+        server_acc.append(central_server.test(weights, client_num, clients, total_data_num,i+2))
 
-        for j in range (client_num):
-            if j == 0 :
-                for key in weights[j]:
-                    weight[key] = (len(clients[j].dataloader) / total_data_num) * weights[j][key]
-            else:
-                for key in weights[j]:
-                    weight[key] += (len(clients[j].dataloader) / total_data_num) * weights[j][key]
+    plt.plot(range(training_round + 1), server_acc)
+    plt.savefig('./result/Server_test_accuracy.png')
 
 def peer_to_peer(): # 1:1로 weight를 교환할 때 weight값에 어떤 가중치를 줘야 하는지 잘 모르겠다. 
     pass

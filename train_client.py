@@ -8,6 +8,64 @@ from pipelining import cifar100Loader, ChestXLoader, cifar10Loader, ChestXLoader
 from torch.utils.data import DataLoader
 from model.resnet import ResNet50
 from model.efficientnet import EfficientNet
+from typing import OrderedDict
+
+class server():
+
+    def __init__(self, model):
+        self.model_name = model
+        self.batch = 4
+        self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+        self.dataloader = DataLoader(ChestXLoaderTest(), batch_size = self.batch, shuffle=True)
+        
+        # model
+        if self.model_name == 'resnet':
+            self.model = ResNet50.resnet56()
+        elif self.model_name == 'efficientnetb0':
+            self.model = EfficientNet.efficientnet_b0()
+
+    def merge_weight(self, weights, client_num, clients, total_data_num):
+        
+        weight = OrderedDict()
+
+        for i in range (client_num):
+            if i == 0:
+                for key in weights[i]:
+                    weight[key] = (len(clients[i].dataloader) / total_data_num) * weights[i][key]
+            else:
+                for key in weights[i]:
+                    weight[key] += (len(clients[i].dataloader) / total_data_num) * weights[i][key]
+
+        return weight
+
+    def test(self, weights, client_num, clients, total_data_num, round):
+        
+        weight = self.merge_weight(weights, client_num, clients, total_data_num)
+        self.model.load_state_dict(weight)
+        torch.save(self.model.state_dict(), './model/resnet/weight/global_model_round' + str(round) + 'pth')
+        self.model.eval()
+        dataloader = DataLoader(ChestXLoaderTest(), batch_size = self.batch,shuffle=True)
+
+        with torch.no_grad(): # for the evaluation mode
+            
+            self.model.apply(lambda m: setattr(m, 'width_mult', self.width_range[-1]))
+            test_correct = 0.0 
+            total = 0.0
+            
+            for _, (imgs, labels) in enumerate(tqdm(dataloader, desc= "Test Round")):
+
+                imgs = imgs.to(self.device) # allocate data to the device
+                labels = labels.cpu().detach().numpy()
+                pred = self.model(imgs)
+                pred = np.argmax(pred.cpu().detach().numpy(), axis=1)
+                correct = (pred == labels).sum()
+                test_correct += correct
+                total += len(labels)
+            acc = test_correct / total
+
+        print("Global Test Accuracy : " , (test_correct / total) * 100)
+
+        return acc
 
 class client():
     def __init__(self, client_number , model):
@@ -41,6 +99,7 @@ class client():
         self.model.to(self.device) # allocate model to device
         self.model.train() # set model as train mode
         epoch_loss = []
+        epoch_acc = []
         
         PATH = "./model.pt"
         grad_scaler = torch.cuda.amp.GradScaler(enabled=False)
@@ -104,11 +163,12 @@ class client():
 
             if len(batch_loss) > 0:
                 epoch_loss.append(sum(batch_loss) / len(batch_loss))
+                epoch_acc.append(acc)
 
-            self.test()
-
-        # plt.plot(range(self.epochs), epoch_loss)
-        # plt.show()
+        plt.plot(range(self.epochs), epoch_acc)
+        plt.savefig('./result/Client' + str(self.cnum) + '_training_accuracy.png')
+        plt.plot(range(self.epochs), epoch_loss)
+        plt.savefig('./result/Client' + str(self.cnum) + '_training_loss.png')
         
         weights = self.model.cpu().state_dict()
         q.put(weights) # return weights as a result of the training
