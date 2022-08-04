@@ -16,35 +16,47 @@ class server():
         self.model_name = model
         self.batch = 4
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-        self.dataloader = DataLoader(ChestXLoaderTest(), batch_size = self.batch, shuffle=True)
+        # self.dataloader = DataLoader(cifar10Loader(), batch_size = self.batch, shuffle=True)
+        self.width_range = [0.25, 1.0]
         
         # model
         if self.model_name == 'resnet':
             self.model = ResNet50.resnet56()
+            self.model.to(self.device)
+            self.model.apply(lambda m: setattr(m, 'width_mult', self.width_range[-1]))
         elif self.model_name == 'efficientnetb0':
             self.model = EfficientNet.efficientnet_b0()
+            self.model.to(self.device)
 
     def merge_weight(self, weights, client_num, clients, total_data_num):
         
-        weight = OrderedDict()
+        weight = self.model.state_dict() # weight 안의 파라미터들이 변하기는 함
+        cw = []
+        for i in range(client_num):
+            cw.append(len(clients[i].dataloader) / total_data_num)
 
-        for i in range (client_num):
-            if i == 0:
-                for key in weights[i]:
-                    weight[key] = (len(clients[i].dataloader) / total_data_num) * weights[i][key]
-            else:
-                for key in weights[i]:
-                    weight[key] += (len(clients[i].dataloader) / total_data_num) * weights[i][key]
+        for key in weight:
+            weight[key] = sum([weights[i][key] * cw[i] for i in range(client_num)])
+
+        # for i in range (client_num):
+        #     if i == 0:
+        #         for key in weights[i]:
+        #             weight[key] = (len(clients[i].dataloader) / total_data_num) * weights[i][key]
+        #     else:
+        #         for key in weights[i]:
+        #             weight[key] += (len(clients[i].dataloader) / total_data_num) * weights[i][key]
+            
 
         return weight
 
     def test(self, weights, client_num, clients, total_data_num, round):
         
         weight = self.merge_weight(weights, client_num, clients, total_data_num)
+        self.model.to(self.device)
         self.model.load_state_dict(weight)
         torch.save(self.model.state_dict(), './model/resnet/weight/global_model_round' + str(round) + 'pth')
         self.model.eval()
-        dataloader = DataLoader(ChestXLoaderTest(), batch_size = self.batch,shuffle=True)
+        dataloader = DataLoader(cifar10Loader(mode = 'test'), batch_size = self.batch,shuffle=True)
 
         with torch.no_grad(): # for the evaluation mode
             
@@ -91,7 +103,7 @@ class client():
         self.criterion = torch.nn.CrossEntropyLoss().to(self.device)
         self.optimizer = torch.optim.SGD(self.model.parameters(), lr=self.learning_rate, momentum=0.9, weight_decay=self.weight_decay, nesterov=True)
 
-        self.dataloader = DataLoader(ChestXLoader(self.cnum), batch_size = self.batch, shuffle=True)
+        self.dataloader = DataLoader(cifar10Loader(self.cnum), batch_size = self.batch, shuffle=True)
         
     def train(self,q = None,updated = False, weight = None):
         
@@ -105,8 +117,11 @@ class client():
         grad_scaler = torch.cuda.amp.GradScaler(enabled=False)
         # self.model.load_state_dict(torch.load(PATH))
 
+        
+
         # If I recieve the weight
         if self.updated == True:
+            # print("loaded")
             self.model.load_state_dict(weight)
 
         print("-----client" + str(self.cnum) + "-----")
@@ -122,7 +137,6 @@ class client():
 
                 imgs = imgs.to(self.device) # allocate data to the device
                 labels = labels.clone().detach().type(torch.LongTensor).to(self.device)
-
 
                 self.optimizer.zero_grad() # optimize the training process
                 self.model.apply(lambda m: setattr(m, 'width_mult', self.width_range[-1])) # width_range = [0.25, 1.0]
@@ -164,14 +178,9 @@ class client():
             if len(batch_loss) > 0:
                 epoch_loss.append(sum(batch_loss) / len(batch_loss))
                 epoch_acc.append(acc)
-
-        plt.plot(range(self.epochs), epoch_acc)
-        plt.savefig('./result/Client' + str(self.cnum) + '_training_accuracy.png')
-        plt.plot(range(self.epochs), epoch_loss)
-        plt.savefig('./result/Client' + str(self.cnum) + '_training_loss.png')
         
-        weights = self.model.cpu().state_dict()
-        q.put(weights) # return weights as a result of the training
+        weights = self.model.state_dict()
+        return acc, weights # return weights as a result of the training
 
     def transmitting_matrix(self, fm1, fm2):
         if fm1.size(2) > fm2.size(2):
@@ -193,10 +202,11 @@ class client():
         top_eigenvalue = torch.sqrt(n / torch.norm(v, dim=1).unsqueeze(1))
         return top_eigenvalue
     
-    def test(self):
+    def test(self, weight):
 
+        self.model.load_state_dict(weight)
         self.model.eval()
-        dataloader = DataLoader(ChestXLoaderTest(), batch_size = self.batch,shuffle=True)
+        dataloader = DataLoader(cifar10Loader(mode = 'test'), batch_size = self.batch,shuffle=True)
 
         with torch.no_grad(): # for the evaluation mode
             

@@ -70,18 +70,14 @@ class cifar100Loader(Dataset):
 
 class cifar10Loader(Dataset):
     
-    def cifar100(self, index):
+    def cifar10(self, index):
 
-        resize = 256
         if self.mode == 'train':
             img = self.client_train[index]
             label = self.client_train_label[index][0]
         elif self.mode == 'test':
-            img = self.client_test[index]
-            label = self.client_test_label[index][0]
-
-        # plt.imshow(img)
-        # plt.show()
+            img = self.server_test[index]
+            label = self.server_test_label[index][0]
 
         transform = transforms.Compose([
         transforms.ToPILImage(),
@@ -96,30 +92,40 @@ class cifar10Loader(Dataset):
 
         return img, label
 
-    def __init__(self,client_index, mode):
+    def __init__(self,client_index = None, mode = 'train'):
 
         self.mode = mode
         (self.x_train, self.y_train), (self.x_test, self.y_test) = tf.keras.datasets.cifar10.load_data()
 
-        # print(self.x_train.shape)
-
         # Distribute data to the clients
         if self.mode == 'train':
-            self.client_train = self.x_train[:10000]
-            self.client_train_label = self.y_train[:10000]
+            if client_index == 0:
+                self.client_train = self.x_train[:10000]
+                self.client_train_label = self.y_train[:10000]
+            elif client_index == 1:
+                self.client_train = self.x_train[10000:20000]
+                self.client_train_label = self.y_train[10000:20000]
+            elif client_index == 2:
+                self.client_train = self.x_train[20000:30000]
+                self.client_train_label = self.y_train[20000:30000]
+            elif client_index == 3:
+                self.client_train = self.x_train[30000:40000]
+                self.client_train_label = self.y_train[30000:40000]
+            elif client_index == 4:
+                self.client_train = self.x_train[40000:50000]
+                self.client_train_label = self.y_train[40000:50000]
         elif self.mode =='test':
-            self.client_test = self.x_test[:2000]
-            self.client_test_label = self.y_test[:2000]
-        
+            self.server_test = self.x_test
+            self.server_test_label = self.y_test
     
     def __len__(self):
         if self.mode == 'train':
             return len(self.client_train)
         elif self.mode == 'test':
-            return  len(self.client_test)
+            return  len(self.server_test)
     
     def __getitem__(self, index):
-        img, label = self.cifar100(index)
+        img, label = self.cifar10(index)
         return img, label
 
 class ChestXLoaderTest(Dataset):

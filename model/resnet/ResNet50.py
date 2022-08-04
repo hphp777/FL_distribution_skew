@@ -107,7 +107,7 @@ class ResNet(nn.Module):
         self.max_width = max_width
         self.inplanes = 16
         self.dilation = 1
-        self.channels = 1
+        self.channels = 3 ### 
         self.num_classes = num_classes
         if replace_stride_with_dilation is None:
             # each element in the tuple indicates if we should replace
@@ -211,7 +211,7 @@ class ResNet(nn.Module):
         x3 = self.layer3(x2)
         return [x2, x3]
 
-def resnet56(class_num = 15, pretrained=False, path=None, **kwargs):
+def resnet56(class_num = 10, pretrained=False, path=None, **kwargs):
     """
     Constructs a ResNet-56 model.
     Args:
