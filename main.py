@@ -10,7 +10,7 @@ from model.efficientnet import EfficientNet
 from train_client import client, server
 from matplotlib import pyplot as plt
 
-client_num = 5
+client_num = 10
 
 # Create server
 central_server = server('resnet')
@@ -21,16 +21,26 @@ client1 = client(1, 'resnet')
 client2 = client(2, 'resnet')
 client3 = client(3, 'resnet')
 client4 = client(4, 'resnet')
+client5 = client(0, 'resnet')
+client6 = client(1, 'resnet')
+client7 = client(2, 'resnet')
+client8 = client(3, 'resnet')
+client9 = client(4, 'resnet')
 
-clients = [client0, client1, client2, client3, client4]
+clients = [client0, client1, client2, client3, client4, client5, client6, client7, client8, client9]
 
 ca1 = []
 ca2 = []
 ca3 = []
 ca4 = []
 ca5 = []
+ca6 = []
+ca7 = []
+ca8 = []
+ca9 = []
+ca10 = []
 
-client_accs = [ca1,ca2,ca3,ca4,ca5]
+client_accs = [ca1,ca2,ca3,ca4,ca5, ca6, ca7, ca8 ,ca9,ca10]
 clients_weight = [0] * 100
 
 # Add all data number
@@ -75,12 +85,29 @@ def centralized_server():
     plt.savefig('./result/Server_test_accuracy.png')
     plt.clf()
 
+def SOLO():
+
+    training_round = 50
+    weights = [0] * 10
+
+    # Initial Round
+    for i in range(training_round):
+        print("training round : ", i+1)
+        weights = [0] * 10
+        for j in range(client_num):
+            acc, weights[j] = clients[j].train()
+            client_accs[j].append(acc)
+
+    for i in range(client_num):
+        draw_train(client_accs[i], i, training_round + 1 )
+
 def peer_to_peer(): # 1:1로 weight를 교환할 때 weight값에 어떤 가중치를 줘야 하는지 잘 모르겠다. 
     pass
 
 if __name__ == '__main__':
 
-    centralized_server()
+    # centralized_server()
+    SOLO()
 
 
 

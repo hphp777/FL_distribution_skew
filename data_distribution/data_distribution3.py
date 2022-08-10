@@ -4,6 +4,11 @@ import os
 from glob import glob
 import shutil
 import math
+import numpy as np
+import matplotlib.pyplot as plt
+
+alpha = 0.5
+c_num = 11
 
 # Label skew for each client
 
@@ -23,25 +28,38 @@ Pneumothorax_path = 'C:/Users/hb/Desktop/Data/ChestX-ray14/Pneumothorax/'
 Pneumonia_path = 'C:/Users/hb/Desktop/Data/ChestX-ray14/Pneumonia/'
 Nofinding_path = 'C:/Users/hb/Desktop/Data/ChestX-ray14/NoFinding/'
 
-Atelectasis_ratio = [0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1]
-Cardiomegaly_ratio = [0.1,0.3,0.1,0.05,0.05,0.05,0.05,0.05,0.05,0.2]
-Consolidation_ratio = [0.05,0.2,0.05,0.1,0.1,0.1,0.1,0,0.1,0.2]
-Edema_ratio = [0.05,0.2,0.05,0.1,0.1,0.1,0.1,0,0.1,0.2]
-Effusion_ratio = [0.1,0.3,0.1,0.05,0.05,0.05,0.05,0.05,0.05,0.2]
-Emphysema_ratio = [0.05,0.2,0.05,0.1,0.1,0.1,0.1,0,0.1,0.2]
-Fibrosis_ratio = [0.1,0.2,0.1,0.1,0.1,0.1,0.1,0,0.1,0.1]
-Hernia_ratio = [0.1,0.3,0.1,0.05,0.05,0.05,0.05,0.05,0.05,0.2]
-Infiltration_ratio = [0.05,0.2,0.05,0.1,0.1,0.1,0.1,0,0.1,0.2]
-Mass_ratio = [0.05,0.2,0.05,0.1,0.1,0.1,0.1,0,0.1,0.2]
-Nodule_ratio = [0.1,0.3,0.1,0.05,0.05,0.05,0.05,0.05,0.05,0.2]
-Pleural_Thickening_ratio = [0.05,0.2,0.05,0.1,0.1,0.1,0.1,0,0.1,0.2]
-Pneumothorax_ratio = [0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1]
-Pneumonia_ratio = [0.1,0.3,0.1,0.05,0.05,0.05,0.05,0.05,0.05,0.2]
-Nofinding_ratio = [0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1]
+Atelectasis_ratio = np.random.dirichlet(np.repeat(alpha, c_num))
+Cardiomegaly_ratio = np.random.dirichlet(np.repeat(alpha, c_num))
+Consolidation_ratio = np.random.dirichlet(np.repeat(alpha, c_num))
+Edema_ratio = np.random.dirichlet(np.repeat(alpha, c_num))
+Effusion_ratio = np.random.dirichlet(np.repeat(alpha, c_num))
+Emphysema_ratio = np.random.dirichlet(np.repeat(alpha, c_num))
+Fibrosis_ratio = np.random.dirichlet(np.repeat(alpha, c_num))
+Hernia_ratio = np.random.dirichlet(np.repeat(alpha, c_num))
+Infiltration_ratio = np.random.dirichlet(np.repeat(alpha, c_num))
+Mass_ratio = np.random.dirichlet(np.repeat(alpha, c_num))
+Nodule_ratio = np.random.dirichlet(np.repeat(alpha, c_num))
+Pleural_Thickening_ratio = np.random.dirichlet(np.repeat(alpha, c_num))
+Pneumothorax_ratio = np.random.dirichlet(np.repeat(alpha, c_num))
+Pneumonia_ratio = np.random.dirichlet(np.repeat(alpha, c_num))
+Nofinding_ratio = np.random.dirichlet(np.repeat(alpha, c_num))
 
 pathes = [Atelectasis_path, Cardiomegaly_path, Consolidation_path, Edema_path, Effusion_path, Emphysema_path, Fibrosis_path, Hernia_path, Infiltration_path, Mass_path, Nodule_path, Pleural_Thickening_path, Pneumothorax_path, Pneumonia_path, Nofinding_path]
 diseases = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema', 'Effusion', 'Emphysema', 'Fibrosis', 'Hernia', 'Infiltration', 'Mass', 'Nodule', 'Pleural_Thickening', 'Pneumothorax', 'Pneumonia', 'NoFinding']
 ratios = [Atelectasis_ratio, Cardiomegaly_ratio, Consolidation_ratio, Edema_ratio, Effusion_ratio, Emphysema_ratio, Fibrosis_ratio, Hernia_ratio, Infiltration_ratio, Mass_ratio, Nodule_ratio, Pleural_Thickening_ratio, Pneumothorax_ratio, Pneumonia_ratio, Nofinding_ratio]
+
+mat = np.array(ratios[:,:10])
+plt.imshow(mat, cmap = plt.cm.Blues)
+plt.xticks(range(10))
+plt.xlabel('Client ID')
+plt.ylabel('Class ID')
+plt.yticks(range(15))
+plt.colorbar()
+plt.show()
+
+# for i in range(10):
+#     path = 'C:/Users/hb/Desktop/Data/ChestX-ray14_Client_Data/C' + str(i)
+#     os.makedirs(path)
 
 for disease in range(len(pathes)):
     index = 0
@@ -49,7 +67,7 @@ for disease in range(len(pathes)):
                    glob('C:/Users/hb/Desktop/Data/ChestX-ray14/' + diseases[disease] + '/*.png')}
     total_img_num = len(all_image_paths)
 
-    for client in range(10):
+    for client in range(11):
         if client == 9:
             for img in range(index, total_img_num):
                 img_name = diseases[disease] + '_' + str(img) + '.png'

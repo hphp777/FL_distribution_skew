@@ -27,17 +27,26 @@ Nofinding_path = 'C:/Users/hb/Desktop/Data/ChestX-ray14/NoFinding/'
 pathes = [Atelectasis_path, Cardiomegaly_path, Consolidation_path, Edema_path, Effusion_path, Emphysema_path, Fibrosis_path, Hernia_path, Infiltration_path, Mass_path, Nodule_path, Pleural_Thickening_path, Pneumothorax_path, Pneumonia_path, Nofinding_path]
 diseases = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema', 'Effusion', 'Emphysema', 'Fibrosis', 'Hernia', 'Infiltration', 'Mass', 'Nodule', 'Pleural_Thickening', 'Pneumothorax', 'Pneumonia', 'NoFinding']
 
+# for i in range(len(diseases)):
+#     path = 'C:/Users/hb/Desktop/Data/XrayD/' + diseases[i]
+#     os.makedirs(path)
+
+
+# for i in range(len(pathes)):
+#     index = 0
+#     all_xrays_df = pd.read_csv('./data_list/' + diseases[i] + '.csv')
+#     print(diseases[i])
+#     for row in all_xrays_df.itertuples():
+#         src = row[14]
+#         img_name =  diseases[i] + '_' + str(index) + '.png' # 
+#         dst = pathes[i] + img_name # 
+#         shutil.copy(src,dst)
+#         index += 1
 
 for i in range(len(pathes)):
     index = 0
-    all_xrays_df = pd.read_csv('./data_list/' + diseases[i] + '.csv')
-    print(diseases[i])
-    for row in all_xrays_df.itertuples():
-        src = row[14]
-        img_name =  diseases[i] + '_' + str(index) + '.png' # 
-        dst = pathes[i] + img_name # 
-        shutil.copy(src,dst)
-        index += 1
+    all_xrays_df = pd.read_csv('./data_list/' + diseases[i] + '.csv')   
+    print(len(all_xrays_df.itertuples()))
 
 
 
