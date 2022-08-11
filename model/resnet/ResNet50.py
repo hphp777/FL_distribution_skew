@@ -98,7 +98,7 @@ class Bottleneck(nn.Module):
 
 class ResNet(nn.Module):
 
-    def __init__(self, block, layers, num_classes=10, zero_init_residual=False, groups=1,
+    def __init__(self, block, layers, num_classes=15, zero_init_residual=False, groups=1,
                  width_per_group=64, replace_stride_with_dilation=None, norm_layer=None, KD=False, max_width=1.0):
         super(ResNet, self).__init__()
         if norm_layer is None:
@@ -122,12 +122,14 @@ class ResNet(nn.Module):
         self.conv1 = USConv2d(self.channels, self.inplanes, kernel_size=3, stride=1, padding=1, # we don't care what the image size is / input channel is 1
                                bias=False, us=[False, True], width_max=self.max_width)
         self.bn1 = USBatchNorm2d(self.inplanes, width_max=self.max_width)
+        self.bn = nn.BatchNorm2d(64, affine=False)
         self.relu = nn.ReLU(inplace=True)
         # self.maxpool = nn.MaxPool2d()
         self.layer1 = self._make_layer(block, 16, layers[0])
         self.layer2 = self._make_layer(block, 32, layers[1], stride=2)
         self.layer3 = self._make_layer(block, 64, layers[2], stride=2)
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+        self.dropout = nn.Dropout(0.5)
         self.fc = USLinear(64 * block.expansion, self.num_classes, us=[True, False], width_max=self.max_width)
         self.KD = KD
         self.softmax = torch.nn.Softmax(dim=0)
@@ -176,7 +178,11 @@ class ResNet(nn.Module):
         x = self.bn1(x)
         x = self.relu(x)  # B x 16 x 32 x 32
         x = self.layer1(x)  # B x 16 x 32 x 32
+        x = self.dropout(x)
+        # x = self.bn(x)
         x = self.layer2(x)  # B x 32 x 16 x 16
+        x = self.dropout(x)
+        # x = self.bn(x)
         x = self.layer3(x)  # B x 64 x 8 x 8
 
         x = self.avgpool(x)  # B x 64 x 1 x 1
@@ -193,7 +199,11 @@ class ResNet(nn.Module):
         x = self.bn1(x)
         x = self.relu(x)  # B x 16 x 32 x 32
         x = self.layer1(x)  # B x 16 x 32 x 32
+        x = self.dropout(x)
+        # x = self.bn(x)
         x2 = self.layer2(x)  # B x 32 x 16 x 16 # last before
+        x = self.dropout(x)
+        # x = self.bn(x)
         x3 = self.layer3(x2)  # B x 64 x 8 x 8 # last
 
         x = self.avgpool(x3)  # B x 64 x 1 x 1
@@ -211,7 +221,7 @@ class ResNet(nn.Module):
         x3 = self.layer3(x2)
         return [x2, x3]
 
-def resnet56(class_num = 10, pretrained=False, path=None, **kwargs):
+def resnet56(class_num = 15, pretrained=False, path=None, **kwargs): ###
     """
     Constructs a ResNet-56 model.
     Args:

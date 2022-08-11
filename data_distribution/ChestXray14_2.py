@@ -8,7 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 alpha = 0.5
-c_num = 11
+c_num = 10
 
 # Label skew for each client
 
@@ -48,8 +48,8 @@ pathes = [Atelectasis_path, Cardiomegaly_path, Consolidation_path, Edema_path, E
 diseases = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema', 'Effusion', 'Emphysema', 'Fibrosis', 'Hernia', 'Infiltration', 'Mass', 'Nodule', 'Pleural_Thickening', 'Pneumothorax', 'Pneumonia', 'NoFinding']
 ratios = [Atelectasis_ratio, Cardiomegaly_ratio, Consolidation_ratio, Edema_ratio, Effusion_ratio, Emphysema_ratio, Fibrosis_ratio, Hernia_ratio, Infiltration_ratio, Mass_ratio, Nodule_ratio, Pleural_Thickening_ratio, Pneumothorax_ratio, Pneumonia_ratio, Nofinding_ratio]
 
-mat = np.array(ratios[:,:10])
-plt.imshow(mat, cmap = plt.cm.Blues)
+mat = np.array(ratios)
+plt.pcolormesh(mat, cmap = plt.cm.Blues)
 plt.xticks(range(10))
 plt.xlabel('Client ID')
 plt.ylabel('Class ID')
@@ -57,9 +57,9 @@ plt.yticks(range(15))
 plt.colorbar()
 plt.show()
 
-# for i in range(10):
-#     path = 'C:/Users/hb/Desktop/Data/ChestX-ray14_Client_Data/C' + str(i)
-#     os.makedirs(path)
+for i in range(10):
+    path = 'C:/Users/hb/Desktop/Data/ChestX-ray14_Client_Data/C' + str(i)
+    os.makedirs(path)
 
 for disease in range(len(pathes)):
     index = 0

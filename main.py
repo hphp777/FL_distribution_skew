@@ -56,7 +56,7 @@ def draw_train(accs, cnum, epochs):
 
 def centralized_server():
 
-    training_round = 50
+    training_round = 1
     weights = [0] * 10
     server_acc = []
 
@@ -87,7 +87,7 @@ def centralized_server():
 
 def SOLO():
 
-    training_round = 50
+    training_round = 1
     weights = [0] * 10
 
     # Initial Round

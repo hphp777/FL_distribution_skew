@@ -131,7 +131,7 @@ class EfficientNet(nn.Module):
         kernel_size = [3, 3, 5, 3, 5, 5, 3]
         depth = depth_coef
         width = width_coef
-        in_channel = 1
+        in_channel = 3
 
         channels = [int(x*width) for x in channels]
         repeats = [int(x*depth) for x in repeats]

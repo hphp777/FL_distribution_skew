@@ -83,8 +83,8 @@ class client():
     def __init__(self, client_number , model):
         
         # hyperparameter
-        self.epochs = 2 # local epochs
-        self.learning_rate = 0.01
+        self.epochs = 20 # local epochs
+        self.learning_rate = 0.000002
         self.weight_decay = 0.0001
         self.width_range = [0.25, 1.0]
         self.mu = 0.45
@@ -101,9 +101,10 @@ class client():
         # train option
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         self.criterion = torch.nn.CrossEntropyLoss().to(self.device)
-        self.optimizer = torch.optim.SGD(self.model.parameters(), lr=self.learning_rate, momentum=0.9, weight_decay=self.weight_decay, nesterov=True)
-
-        self.dataloader = DataLoader(cifar10Loader(self.cnum), batch_size = self.batch, shuffle=True)
+        self.optimizer = torch.optim.SGD(self.model.parameters(), lr=self.learning_rate, momentum=0.4, weight_decay=self.weight_decay, nesterov=True)
+        # self.optimizer = torch.optim.Adam(self.model.parameters(), lr = self.learning_rate, weight_decay=0.9)
+        self.scheduler = torch.optim.lr_scheduler.StepLR(optimizer=self.optimizer, step_size=1, gamma=0.5)
+        self.dataloader = DataLoader(ChestXLoader(self.cnum), batch_size = self.batch, shuffle=True)
         
     def train(self,q = None,updated = False, weight = None):
         
@@ -171,7 +172,7 @@ class client():
                 grad_scaler.update()
                 # self.optimizer.step()
                 batch_loss.append(loss.item())
-            
+            self.scheduler.step()
             acc = (total_correct / total_data) * 100
             print("Train Accuracy: ", acc)
 

@@ -32,16 +32,16 @@ diseases = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema', 'Effusion',
 #     os.makedirs(path)
 
 
-# for i in range(len(pathes)):
-#     index = 0
-#     all_xrays_df = pd.read_csv('./data_list/' + diseases[i] + '.csv')
-#     print(diseases[i])
-#     for row in all_xrays_df.itertuples():
-#         src = row[14]
-#         img_name =  diseases[i] + '_' + str(index) + '.png' # 
-#         dst = pathes[i] + img_name # 
-#         shutil.copy(src,dst)
-#         index += 1
+for i in range(len(pathes)):
+    index = 0
+    all_xrays_df = pd.read_csv('./data_list/' + diseases[i] + '.csv')
+    print(diseases[i])
+    for row in all_xrays_df.itertuples():
+        src = row[14]
+        img_name =  diseases[i] + '_' + str(index) + '.png' # 
+        dst = pathes[i] + img_name # 
+        shutil.copy(src,dst)
+        index += 1
 
 for i in range(len(pathes)):
     index = 0

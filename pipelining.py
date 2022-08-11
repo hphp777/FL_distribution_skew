@@ -135,7 +135,7 @@ class ChestXLoaderTest(Dataset):
         mean = [0.485]
         std = [0.229] 
 
-        img = cv2.imread(img_path, IMREAD_GRAYSCALE)
+        img = cv2.imread(img_path)
         label = self.create_label(img_path)
 
         transform = transforms.Compose([
@@ -208,11 +208,11 @@ class ChestXLoaderTest(Dataset):
 class ChestXLoader(Dataset): # custom dataset
     def ChestXdataloader(self, img_path):
         
-        resize = 256
+        resize = 64
         mean = [0.485]
         std = [0.229] 
 
-        img = cv2.imread(img_path, IMREAD_GRAYSCALE)
+        img = cv2.imread(img_path)
         label = self.create_label(img_path)
 
         transform = transforms.Compose([
