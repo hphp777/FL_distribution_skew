@@ -73,7 +73,7 @@ def centralized_server():
         print("training round : ", i+2)
         weights = [0] * 10
         for j in range(client_num):
-            acc, weights[j] = clients[j].train(updated= True, weight= weight)
+            acc, weights[j] = clients[j].train(updated= True, weight= weight, t_r = i + 2)
             client_accs[j].append(acc)
 
         server_acc.append(central_server.test(weights, client_num, clients, total_data_num,i+2))
@@ -87,7 +87,7 @@ def centralized_server():
 
 def SOLO():
 
-    training_round = 1
+    training_round = 20
     weights = [0] * 10
 
     # Initial Round
@@ -97,6 +97,8 @@ def SOLO():
         for j in range(client_num):
             acc, weights[j] = clients[j].train()
             client_accs[j].append(acc)
+
+    central_server.test(weights, client_num, clients, total_data_num,i+2)
 
     for i in range(client_num):
         draw_train(client_accs[i], i, training_round + 1 )

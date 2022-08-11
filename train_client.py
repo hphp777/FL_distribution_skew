@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from tqdm import tqdm
 import numpy as np
 from matplotlib import pyplot as plt
-from pipelining import cifar100Loader, ChestXLoader, cifar10Loader, ChestXLoaderTest
+from pipelining import cifar100Loader, ChestXLoader, cifar10Loader
 from torch.utils.data import DataLoader
 from model.resnet import ResNet50
 from model.efficientnet import EfficientNet
@@ -36,16 +36,7 @@ class server():
             cw.append(len(clients[i].dataloader) / total_data_num)
 
         for key in weight:
-            weight[key] = sum([weights[i][key] * cw[i] for i in range(client_num)])
-
-        # for i in range (client_num):
-        #     if i == 0:
-        #         for key in weights[i]:
-        #             weight[key] = (len(clients[i].dataloader) / total_data_num) * weights[i][key]
-        #     else:
-        #         for key in weights[i]:
-        #             weight[key] += (len(clients[i].dataloader) / total_data_num) * weights[i][key]
-            
+            weight[key] = sum([weights[i][key] * cw[i] for i in range(client_num)])           
 
         return weight
 
@@ -56,7 +47,7 @@ class server():
         self.model.load_state_dict(weight)
         torch.save(self.model.state_dict(), './model/resnet/weight/global_model_round' + str(round) + 'pth')
         self.model.eval()
-        dataloader = DataLoader(cifar10Loader(mode = 'test'), batch_size = self.batch,shuffle=True)
+        dataloader = DataLoader(ChestXLoader(mode = 'test'), batch_size = self.batch,shuffle=True)
 
         with torch.no_grad(): # for the evaluation mode
             
@@ -83,9 +74,9 @@ class client():
     def __init__(self, client_number , model):
         
         # hyperparameter
-        self.epochs = 20 # local epochs
+        self.epochs = 2 # local epochs
         self.learning_rate = 0.000002
-        self.weight_decay = 0.0001
+        self.weight_decay = 0.01
         self.width_range = [0.25, 1.0]
         self.mu = 0.45
         self.cnum = client_number
@@ -104,9 +95,9 @@ class client():
         self.optimizer = torch.optim.SGD(self.model.parameters(), lr=self.learning_rate, momentum=0.4, weight_decay=self.weight_decay, nesterov=True)
         # self.optimizer = torch.optim.Adam(self.model.parameters(), lr = self.learning_rate, weight_decay=0.9)
         self.scheduler = torch.optim.lr_scheduler.StepLR(optimizer=self.optimizer, step_size=1, gamma=0.5)
-        self.dataloader = DataLoader(ChestXLoader(self.cnum), batch_size = self.batch, shuffle=True)
+        self.dataloader = DataLoader(ChestXLoader(self.cnum, mode = 'train'), batch_size = self.batch, shuffle=True)
         
-    def train(self,q = None,updated = False, weight = None):
+    def train(self,q = None,updated = False, weight = None, t_r = None):
         
         self.updated = updated
         self.model.to(self.device) # allocate model to device
@@ -117,8 +108,6 @@ class client():
         PATH = "./model.pt"
         grad_scaler = torch.cuda.amp.GradScaler(enabled=False)
         # self.model.load_state_dict(torch.load(PATH))
-
-        
 
         # If I recieve the weight
         if self.updated == True:
@@ -172,7 +161,7 @@ class client():
                 grad_scaler.update()
                 # self.optimizer.step()
                 batch_loss.append(loss.item())
-            self.scheduler.step()
+            # self.scheduler.step()
             acc = (total_correct / total_data) * 100
             print("Train Accuracy: ", acc)
 

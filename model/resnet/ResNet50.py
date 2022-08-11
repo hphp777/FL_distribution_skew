@@ -188,7 +188,7 @@ class ResNet(nn.Module):
         x = self.avgpool(x)  # B x 64 x 1 x 1
         x_f = x.view(x.size(0), -1)  # B x 64
         x = self.fc(x_f)  # B x num_classes
-        # x = self.softmax(x)
+        x = self.softmax(x)
         if self.KD == True:
             return x_f, x
         else:
@@ -209,7 +209,7 @@ class ResNet(nn.Module):
         x = self.avgpool(x3)  # B x 64 x 1 x 1
         x_f = x.view(x.size(0), -1)  # B x 64
         x = self.fc(x_f)  # B x num_classes
-        # x = self.softmax(x)
+        x = self.softmax(x)
         if self.KD == True:
             return x_f, x
         else:
@@ -221,7 +221,7 @@ class ResNet(nn.Module):
         x3 = self.layer3(x2)
         return [x2, x3]
 
-def resnet56(class_num = 15, pretrained=False, path=None, **kwargs): ###
+def resnet56(class_num = 10, pretrained=False, path=None, **kwargs): ###
     """
     Constructs a ResNet-56 model.
     Args:

@@ -12,21 +12,21 @@ c_num = 10
 
 # Label skew for each client
 
-Atelectasis_path = 'C:/Users/hb/Desktop/Data/ChestX-ray14/Atelectasis/'
-Cardiomegaly_path = 'C:/Users/hb/Desktop/Data/ChestX-ray14/Cardiomegaly/'
-Consolidation_path = 'C:/Users/hb/Desktop/Data/ChestX-ray14/Consolidation/'
-Edema_path = 'C:/Users/hb/Desktop/Data/ChestX-ray14/Edema/'
-Effusion_path = 'C:/Users/hb/Desktop/Data/ChestX-ray14/Effusion/'
-Emphysema_path = 'C:/Users/hb/Desktop/Data/ChestX-ray14/Emphysema/'
-Fibrosis_path = 'C:/Users/hb/Desktop/Data/ChestX-ray14/Fibrosis/'
-Hernia_path = 'C:/Users/hb/Desktop/Data/ChestX-ray14/Hernia/'
-Infiltration_path = 'C:/Users/hb/Desktop/Data/ChestX-ray14/Infiltration/'
-Mass_path = 'C:/Users/hb/Desktop/Data/ChestX-ray14/Mass/'
-Nodule_path = 'C:/Users/hb/Desktop/Data/ChestX-ray14/Nodule/'
-Pleural_Thickening_path = 'C:/Users/hb/Desktop/Data/ChestX-ray14/Pleural_Thickening/'
-Pneumothorax_path = 'C:/Users/hb/Desktop/Data/ChestX-ray14/Pneumothorax/'
-Pneumonia_path = 'C:/Users/hb/Desktop/Data/ChestX-ray14/Pneumonia/'
-Nofinding_path = 'C:/Users/hb/Desktop/Data/ChestX-ray14/NoFinding/'
+Atelectasis_path = 'C:/Users/hb/Desktop/data/ChestX-ray14/Atelectasis/'
+Cardiomegaly_path = 'C:/Users/hb/Desktop/data/ChestX-ray14/Cardiomegaly/'
+Consolidation_path = 'C:/Users/hb/Desktop/data/ChestX-ray14/Consolidation/'
+Edema_path = 'C:/Users/hb/Desktop/data/ChestX-ray14/Edema/'
+Effusion_path = 'C:/Users/hb/Desktop/data/ChestX-ray14/Effusion/'
+Emphysema_path = 'C:/Users/hb/Desktop/data/ChestX-ray14/Emphysema/'
+Fibrosis_path = 'C:/Users/hb/Desktop/data/ChestX-ray14/Fibrosis/'
+Hernia_path = 'C:/Users/hb/Desktop/data/ChestX-ray14/Hernia/'
+Infiltration_path = 'C:/Users/hb/Desktop/data/ChestX-ray14/Infiltration/'
+Mass_path = 'C:/Users/hb/Desktop/data/ChestX-ray14/Mass/'
+Nodule_path = 'C:/Users/hb/Desktop/data/ChestX-ray14/Nodule/'
+Pleural_Thickening_path = 'C:/Users/hb/Desktop/data/ChestX-ray14/Pleural_Thickening/'
+Pneumothorax_path = 'C:/Users/hb/Desktop/data/ChestX-ray14/Pneumothorax/'
+Pneumonia_path = 'C:/Users/hb/Desktop/data/ChestX-ray14/Pneumonia/'
+Nofinding_path = 'C:/Users/hb/Desktop/data/ChestX-ray14/NoFinding/'
 
 Atelectasis_ratio = np.random.dirichlet(np.repeat(alpha, c_num))
 Cardiomegaly_ratio = np.random.dirichlet(np.repeat(alpha, c_num))
@@ -44,6 +44,9 @@ Pneumothorax_ratio = np.random.dirichlet(np.repeat(alpha, c_num))
 Pneumonia_ratio = np.random.dirichlet(np.repeat(alpha, c_num))
 Nofinding_ratio = np.random.dirichlet(np.repeat(alpha, c_num))
 
+aa = glob('C:/Users/hb/Desktop/data/ChestX-ray14_Client_Data/*/*.png')
+print(len(aa))
+
 pathes = [Atelectasis_path, Cardiomegaly_path, Consolidation_path, Edema_path, Effusion_path, Emphysema_path, Fibrosis_path, Hernia_path, Infiltration_path, Mass_path, Nodule_path, Pleural_Thickening_path, Pneumothorax_path, Pneumonia_path, Nofinding_path]
 diseases = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema', 'Effusion', 'Emphysema', 'Fibrosis', 'Hernia', 'Infiltration', 'Mass', 'Nodule', 'Pleural_Thickening', 'Pneumothorax', 'Pneumonia', 'NoFinding']
 ratios = [Atelectasis_ratio, Cardiomegaly_ratio, Consolidation_ratio, Edema_ratio, Effusion_ratio, Emphysema_ratio, Fibrosis_ratio, Hernia_ratio, Infiltration_ratio, Mass_ratio, Nodule_ratio, Pleural_Thickening_ratio, Pneumothorax_ratio, Pneumonia_ratio, Nofinding_ratio]
@@ -57,9 +60,9 @@ plt.yticks(range(15))
 plt.colorbar()
 plt.show()
 
-for i in range(10):
-    path = 'C:/Users/hb/Desktop/Data/ChestX-ray14_Client_Data/C' + str(i)
-    os.makedirs(path)
+# for i in range(10):
+#     path = 'C:/Users/hb/Desktop/Data/ChestX-ray14_Client_Data/C' + str(i)
+#     os.makedirs(path)
 
 for disease in range(len(pathes)):
     index = 0
@@ -67,7 +70,7 @@ for disease in range(len(pathes)):
                    glob('C:/Users/hb/Desktop/Data/ChestX-ray14/' + diseases[disease] + '/*.png')}
     total_img_num = len(all_image_paths)
 
-    for client in range(11):
+    for client in range(10):
         if client == 9:
             for img in range(index, total_img_num):
                 img_name = diseases[disease] + '_' + str(img) + '.png'

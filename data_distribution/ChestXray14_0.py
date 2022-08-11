@@ -8,6 +8,12 @@ all_xrays_df = pd.read_csv('./Data_Entry.csv')
 all_image_paths = {os.path.basename(x): x for x in 
                    glob('C:/Users/hb/Desktop/Data/archive/images_*/images/*.png')}
 
+my_file = open("test_list.txt", "r")
+data = my_file.read()
+testdata = data.replace('\n', ' ').split(" ")
+
+aa = glob('C:/Users/hb/Desktop/Data/archive/images_*/images/*.png')
+print(len(aa))
 # If the finding label == disease_name, move to the designated folder
 all_xrays_df['FilePath'] = all_xrays_df['Image Index'].map(all_image_paths.get)
 
