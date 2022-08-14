@@ -40,14 +40,13 @@ class server():
 
         return weight
 
-    def test(self, weights, client_num, clients, total_data_num, round):
+    def test(self, weight, round):
         
-        weight = self.merge_weight(weights, client_num, clients, total_data_num)
         self.model.to(self.device)
         self.model.load_state_dict(weight)
         torch.save(self.model.state_dict(), './model/resnet/weight/global_model_round' + str(round) + 'pth')
         self.model.eval()
-        dataloader = DataLoader(ChestXLoader(mode = 'test'), batch_size = self.batch,shuffle=True)
+        dataloader = DataLoader(cifar10Loader(mode = 'test'), batch_size = self.batch,shuffle=True)
 
         with torch.no_grad(): # for the evaluation mode
             
@@ -74,9 +73,9 @@ class client():
     def __init__(self, client_number , model):
         
         # hyperparameter
-        self.epochs = 2 # local epochs
-        self.learning_rate = 0.000002
-        self.weight_decay = 0.01
+        self.epochs = 20 # local epochs
+        self.learning_rate = 0.0001
+        self.weight_decay = 0.5
         self.width_range = [0.25, 1.0]
         self.mu = 0.45
         self.cnum = client_number
@@ -92,12 +91,12 @@ class client():
         # train option
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         self.criterion = torch.nn.CrossEntropyLoss().to(self.device)
-        self.optimizer = torch.optim.SGD(self.model.parameters(), lr=self.learning_rate, momentum=0.4, weight_decay=self.weight_decay, nesterov=True)
+        self.optimizer = torch.optim.SGD(self.model.parameters(), lr=self.learning_rate, momentum=0.1, weight_decay=self.weight_decay, nesterov=True)
         # self.optimizer = torch.optim.Adam(self.model.parameters(), lr = self.learning_rate, weight_decay=0.9)
         self.scheduler = torch.optim.lr_scheduler.StepLR(optimizer=self.optimizer, step_size=1, gamma=0.5)
-        self.dataloader = DataLoader(ChestXLoader(self.cnum, mode = 'train'), batch_size = self.batch, shuffle=True)
+        self.dataloader = DataLoader(cifar10Loader(self.cnum, mode = 'train'), batch_size = self.batch, shuffle=True)
         
-    def train(self,q = None,updated = False, weight = None, t_r = None):
+    def train(self,updated = False, weight = None, t_r = None):
         
         self.updated = updated
         self.model.to(self.device) # allocate model to device

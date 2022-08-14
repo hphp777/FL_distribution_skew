@@ -112,9 +112,9 @@ class ChestXLoader(Dataset):
     
     def ChestXdataloader(self, img_path):
         
-        resize = 256
+        resize = 128
 
-        img = cv2.imread(img_path)
+        img = cv2.imread(img_path, IMREAD_GRAYSCALE)
         label = self.create_label(img_path)
 
         transform = transforms.Compose([
@@ -129,7 +129,7 @@ class ChestXLoader(Dataset):
 
         return img, label
 
-    def __init__(self, client_index, mode = 'train'):
+    def __init__(self, client_index = None, mode = 'train'):
 
         if mode == 'train':
             self.all_image_paths = glob('C:/Users/hb/Desktop/Data/ChestX-ray14_Client_Data/C' + str(client_index) + '/*.png')
