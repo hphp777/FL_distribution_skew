@@ -99,7 +99,7 @@ class cifar10Loader(Dataset):
         if mode == 'train':
             self.all_image_paths = glob('C:/Users/hb/Desktop/Data/CIFAR10_Client/C' + str(client_index) + '/*.png')
         if mode == 'test':
-            self.all_image_paths = glob('C:/Users/hb/Desktop/Data/CIFAR10/test/*.png')
+            self.all_image_paths = glob('C:/Users/hb/Desktop/Data/CIFAR10/test/*/*.png')
 
     def __len__(self):
         return len(self.all_image_paths)
