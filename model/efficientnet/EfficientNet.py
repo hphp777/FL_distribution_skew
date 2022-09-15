@@ -131,7 +131,7 @@ class EfficientNet(nn.Module):
         kernel_size = [3, 3, 5, 3, 5, 5, 3]
         depth = depth_coef
         width = width_coef
-        in_channel = 3
+        in_channel = 1
 
         channels = [int(x*width) for x in channels]
         repeats = [int(x*depth) for x in repeats]
@@ -193,7 +193,7 @@ class EfficientNet(nn.Module):
         x = x.view(x.size(0), -1)
         x = self.dropout(x)
         x = self.linear(x)
-        # x = self.softmax(x)
+        x = self.softmax(x)
         return x
 
 

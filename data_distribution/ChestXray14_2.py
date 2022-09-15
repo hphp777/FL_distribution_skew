@@ -7,8 +7,8 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
-alpha = 0.5
-c_num = 10
+alpha = 20
+c_num = 5
 
 # Label skew for each client
 
@@ -44,34 +44,32 @@ Pneumothorax_ratio = np.random.dirichlet(np.repeat(alpha, c_num))
 Pneumonia_ratio = np.random.dirichlet(np.repeat(alpha, c_num))
 Nofinding_ratio = np.random.dirichlet(np.repeat(alpha, c_num))
 
-aa = glob('C:/Users/hb/Desktop/data/ChestX-ray14_Client_Data/*/*.png')
-print(len(aa))
-
-pathes = [Atelectasis_path, Cardiomegaly_path, Consolidation_path, Edema_path, Effusion_path, Emphysema_path, Fibrosis_path, Hernia_path, Infiltration_path, Mass_path, Nodule_path, Pleural_Thickening_path, Pneumothorax_path, Pneumonia_path, Nofinding_path]
-diseases = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema', 'Effusion', 'Emphysema', 'Fibrosis', 'Hernia', 'Infiltration', 'Mass', 'Nodule', 'Pleural_Thickening', 'Pneumothorax', 'Pneumonia', 'NoFinding']
-ratios = [Atelectasis_ratio, Cardiomegaly_ratio, Consolidation_ratio, Edema_ratio, Effusion_ratio, Emphysema_ratio, Fibrosis_ratio, Hernia_ratio, Infiltration_ratio, Mass_ratio, Nodule_ratio, Pleural_Thickening_ratio, Pneumothorax_ratio, Pneumonia_ratio, Nofinding_ratio]
+pathes = [Atelectasis_path, Cardiomegaly_path, Consolidation_path, Edema_path,  Effusion_path, Emphysema_path, Fibrosis_path, Hernia_path, Infiltration_path, Mass_path, Nodule_path, Pleural_Thickening_path, Pneumothorax_path, Pneumonia_path, Nofinding_path]
+diseases = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema', 'Effusion', 'Emphysema', 'Fibrosis', 'Hernia','Infiltration', 'Mass', 'Nodule', 'Pleural_Thickening', 'Pneumothorax', 'Pneumonia', 'Nofinding']
+ratios = [Atelectasis_ratio, Cardiomegaly_ratio, Consolidation_ratio,  Edema_ratio, Effusion_ratio, Emphysema_ratio, Fibrosis_ratio, Hernia_ratio, Infiltration_ratio, Mass_ratio, Nodule_ratio, Pleural_Thickening_ratio, Pneumothorax_ratio, Pneumonia_ratio, Nofinding_ratio]
 
 mat = np.array(ratios)
 plt.pcolormesh(mat, cmap = plt.cm.Blues)
-plt.xticks(range(10))
+plt.xticks(range(c_num))
 plt.xlabel('Client ID')
 plt.ylabel('Class ID')
-plt.yticks(range(15))
+plt.yticks(range(len(pathes)))
 plt.colorbar()
 plt.show()
 
-# for i in range(10):
-#     path = 'C:/Users/hb/Desktop/Data/ChestX-ray14_Client_Data/C' + str(i)
-#     os.makedirs(path)
+for i in range(c_num):
+    path = 'C:/Users/hb/Desktop/Data/ChestX-ray14_Client_Data/C' + str(i)
+    os.makedirs(path)
 
 for disease in range(len(pathes)):
     index = 0
     all_image_paths = {os.path.basename(x): x for x in 
                    glob('C:/Users/hb/Desktop/Data/ChestX-ray14/' + diseases[disease] + '/*.png')}
     total_img_num = len(all_image_paths)
+    print(total_img_num)
 
-    for client in range(10):
-        if client == 9:
+    for client in range(c_num):
+        if client == 4:
             for img in range(index, total_img_num):
                 img_name = diseases[disease] + '_' + str(img) + '.png'
                 src = pathes[disease] + img_name

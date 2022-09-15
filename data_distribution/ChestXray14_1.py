@@ -34,9 +34,12 @@ Nofinding_path = 'C:/Users/hb/Desktop/data/ChestX-ray14/NoFinding/'
 pathes = [Atelectasis_path, Cardiomegaly_path, Consolidation_path, Edema_path, Effusion_path, Emphysema_path, Fibrosis_path, Hernia_path, Infiltration_path, Mass_path, Nodule_path, Pleural_Thickening_path, Pneumothorax_path, Pneumonia_path, Nofinding_path]
 diseases = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema', 'Effusion', 'Emphysema', 'Fibrosis', 'Hernia', 'Infiltration', 'Mass', 'Nodule', 'Pleural_Thickening', 'Pneumothorax', 'Pneumonia', 'NoFinding']
 
-for i in range(len(diseases)):
-    path = 'C:/Users/hb/Desktop/data/ChestX-ray14/' + diseases[i]
-    os.makedirs(path)
+pathes = [Nofinding_path]
+diseases = ['NoFinding']
+
+# for i in range(len(diseases)):
+#     path = 'C:/Users/hb/Desktop/data/ChestX-ray14/' + diseases[i]
+#     os.makedirs(path)
 
 
 for i in range(len(pathes)):
@@ -44,7 +47,7 @@ for i in range(len(pathes)):
     all_xrays_df = pd.read_csv('./data_list/' + diseases[i] + '.csv')
     for row in all_xrays_df.itertuples():
         if row[2] in testdata:
-            os.remove(row[14])
+            # os.remove(row[14])
             continue
         else:
             src = row[14]

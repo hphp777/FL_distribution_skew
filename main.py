@@ -5,12 +5,13 @@ import time
 from typing import OrderedDict
 import torch
 import numpy
-from model.resnet import ResNet50
 from model.efficientnet import EfficientNet
-from train_client import client, server
+from fedalign import client, server
+# from fedavg import client, server
+# from fedalign_pre import client, server
 from matplotlib import pyplot as plt
 
-client_num = 10
+client_num = 5
 
 # Create server
 central_server = server('resnet')
@@ -21,13 +22,9 @@ client1 = client(1, 'resnet')
 client2 = client(2, 'resnet')
 client3 = client(3, 'resnet')
 client4 = client(4, 'resnet')
-client5 = client(5, 'resnet')
-client6 = client(6, 'resnet')
-client7 = client(7, 'resnet')
-client8 = client(8, 'resnet')
-client9 = client(9, 'resnet')
 
-clients = [client0, client1, client2, client3, client4, client5, client6, client7, client8, client9]
+
+clients = [client0, client1, client2, client3, client4]
 
 ca1 = []
 ca2 = []
@@ -56,7 +53,7 @@ def draw_train(accs, cnum, epochs):
 
 def centralized_server(): 
 
-    training_round = 9
+    training_round = 50
     weights = [0] * 10
     server_acc = []
 
@@ -69,7 +66,7 @@ def centralized_server():
     weight = central_server.merge_weight(weights, client_num, clients, total_data_num)
     server_acc.append(central_server.test(weight, 1))
 
-    for i in range(training_round):
+    for i in range(training_round-1):
         print("training round : ", i+2)
         for j in range(client_num):
             acc, weights[j] = clients[j].train(updated= True, weight= weight, t_r = i + 2)
@@ -79,9 +76,9 @@ def centralized_server():
         server_acc.append(central_server.test(weight,i+2))
 
     for i in range(client_num):
-        draw_train(client_accs[i], i, training_round + 1 )
+        draw_train(client_accs[i], i, training_round)
 
-    plt.plot(range(training_round + 1), server_acc)
+    plt.plot(range(training_round), server_acc)
     plt.savefig('./result/Server_test_accuracy.png')
     plt.clf()
 
@@ -101,13 +98,10 @@ def SOLO():
         weight = central_server.merge_weight(weights, client_num, clients, total_data_num)
         central_server.test(weight,i+1)
 
-def peer_to_peer(): # 1:1로 weight를 교환할 때 weight값에 어떤 가중치를 줘야 하는지 잘 모르겠다. 
-    pass
-
 if __name__ == '__main__':
 
-    # centralized_server()
-    SOLO()
+    centralized_server()
+    # SOLO()
 
 
 
